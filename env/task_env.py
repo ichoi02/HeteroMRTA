@@ -585,9 +585,9 @@ class TaskEnv:
         dist = np.sum(self.get_matrix(self.agent_dic, 'travel_dist'))
         priority_reward = self.get_priority_reward()
         if self.finished:
-            reward = - self.current_time - eff * 10 + priority_reward
+            reward = - self.current_time - eff * 10 + priority_reward * 0.1
         else:
-            reward = - max_time - eff * 10 + priority_reward
+            reward = - max_time - eff * 10 + priority_reward * 0.1
         return reward, finished_tasks
     
     def get_priority_reward(self):
@@ -595,7 +595,6 @@ class TaskEnv:
         n = len(self.finished_tasks)
         for i, task_id in enumerate(self.finished_tasks):
             reward += self.task_dic[task_id]['priority'] * (n - i) / n
-        print(reward)
         return reward
 
     def get_efficiency(self):
