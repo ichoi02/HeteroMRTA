@@ -576,15 +576,6 @@ class TaskEnv:
 
     def get_episode_reward(self, max_time=100):
         # TODO change reward function
-        # OPTIONS
-        # 1. just add bonus for priority if task is finished (reward = -self.current_time - eff*10 + priority*scale factor)
-        # priority_scale = 5
-        # priority_bonus = 0
-        # for task in self.task_dic.values():
-        #     if task['finished']:
-        #         priority_bonus += task['priority']
-        # reward = - self.current_time + priority_bonus * priority_scale if self.finished else - max_time + priority_bonus * priority_scale
-        # 2. more complicated - reward earlier completion of high priority tasks (priority_time_score = time_finish/max_time * priority)
         self.calculate_waiting_time()
         eff = self.get_efficiency()
         finished_tasks = self.get_matrix(self.task_dic, 'finished')
