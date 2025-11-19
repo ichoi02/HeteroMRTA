@@ -25,7 +25,7 @@ class TrainParams:
     IL_DECAY = -1e-5  # -1e-6 700k decay 0.5, -1e-5 70k decay 0.5, -1e-4 7k decay 0.5
     BATCH_SIZE = 2048
     AGENT_INPUT_DIM = 6 + EnvParams.TRAIT_DIM
-    TASK_INPUT_DIM = 5 + 2 * EnvParams.TRAIT_DIM # TODO
+    TASK_INPUT_DIM = 1 + 5 + 2 * EnvParams.TRAIT_DIM # TODO - (done) add 1 for priority
     EMBEDDING_DIM = 128
     SAMPLE_SIZE = 200
     PADDING_SIZE = 50

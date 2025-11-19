@@ -294,17 +294,17 @@ class TaskEnv:
         return current_agents
 
     def get_current_task_status(self, agent):
-        # TODO
+        # TODO (done) include priority to obs
         status = []
         for t in self.task_dic.values():
             travel_time = self.calculate_eulidean_distance(agent, t) / agent['velocity']
             temp_status = np.hstack([t['status'], t['requirements'], t['time'], travel_time,
-                                     agent['location'] - t['location'], t['feasible_assignment']])
+                                     agent['location'] - t['location'], t['feasible_assignment'], t['priority']])
             status.append(temp_status)
         status = [np.hstack([np.zeros(self.traits_dim), - np.ones(self.traits_dim), 0,
                              self.calculate_eulidean_distance(agent,
                                                               self.depot_dic[agent['species']])
-                             / agent['velocity'], agent['location'] - agent['depot'], 1])] + status
+                             / agent['velocity'], agent['location'] - agent['depot'], 1, 0])] + status
         current_tasks = np.vstack(status)
         return current_tasks
 
@@ -574,7 +574,7 @@ class TaskEnv:
                 agent['trajectory'].append(np.array([self.depot_dic[agent['species']]['location'][0], self.depot_dic[agent['species']]['location'][1], angle]))
 
     def get_episode_reward(self, max_time=100):
-        # TODO
+        # TODO change reward function
         self.calculate_waiting_time()
         eff = self.get_efficiency()
         finished_tasks = self.get_matrix(self.task_dic, 'finished')
