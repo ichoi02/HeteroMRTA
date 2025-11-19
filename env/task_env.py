@@ -575,16 +575,6 @@ class TaskEnv:
                 agent['trajectory'].append(np.array([self.depot_dic[agent['species']]['location'][0], self.depot_dic[agent['species']]['location'][1], angle]))
 
     def get_episode_reward(self, max_time=100):
-        # TODO change reward function
-        # OPTIONS
-        # 1. just add bonus for priority if task is finished (reward = -self.current_time - eff*10 + priority*scale factor)
-        # priority_scale = 5
-        # priority_bonus = 0
-        # for task in self.task_dic.values():
-        #     if task['finished']:
-        #         priority_bonus += task['priority']
-        # reward = - self.current_time + priority_bonus * priority_scale if self.finished else - max_time + priority_bonus * priority_scale
-        # 2. more complicated - reward earlier completion of high priority tasks (priority_time_score = time_finish/max_time * priority)
         self.calculate_waiting_time()
         eff = self.get_efficiency()
         finished_tasks = self.get_matrix(self.task_dic, 'finished')
@@ -790,10 +780,26 @@ class TaskEnv:
 
 
 if __name__ == '__main__':
+# edited to create 3 test sets, one without priority vector, one with priority, one with zero priority
     import pickle
-    testSet = 'RALPriorityTestSet2'
-    os.mkdir(f'../{testSet}')
+    testSet1 = 'woutPriorityVector'
+    testSet2 = 'wPriority'
+    testSet3 = 'wZeroPriority'
+    os.mkdir(f'../{testSet1}')
+    os.mkdir(f'../{testSet2}')
     for i in range(50):
         env = TaskEnv((3, 3), (5, 5), (20, 20), 5, seed=i)
-        pickle.dump(env, open(f'../{testSet}/env_{i}.pkl', 'wb'))
+        env2 = copy.deepcopy(env)
+        env3 = copy.deepcopy(env)
+        # remove priority from task_dic in env2
+        for task in env2.task_dic.values():
+            task.pop('priority')
+        # set priority to zero in env3
+        for task in env3.task_dic.values():
+            task['priority'] = 0
+        pickle.dump(env2, open(f'../{testSet1}/env_{i}.pkl', 'wb'))
+        pickle.dump(env, open(f'../{testSet2}/env_{i}.pkl', 'wb'))
+        pickle.dump(env3, open(f'../{testSet3}/env_{i}.pkl', 'wb'))
     env.init_state()
+    env2.init_state()
+    env3.init_state()

@@ -19,15 +19,16 @@ EnvParams.MAX_TIME = 200
 EnvParams.TRAIT_DIM = 5
 TrainParams.EMBEDDING_DIM = 128
 TrainParams.AGENT_INPUT_DIM = 6 + EnvParams.TRAIT_DIM
+# TODO (done) add 1 for priority, not sure why it resets the params value here
 TrainParams.TASK_INPUT_DIM = 5 + 2 * EnvParams.TRAIT_DIM
 
 USE_GPU = False
-USE_GPU_GLOBAL = True
+USE_GPU_GLOBAL = False
 NUM_GPU = 0
 NUM_META_AGENT = 1
 GAMMA = 1
 FOLDER_NAME = 'save'
-testSet = 'RALTestSet'
+testSet = 'woutPriorityVector'
 model_path = f'model/{FOLDER_NAME}'
 sampling = False
 max_task = False
@@ -36,7 +37,7 @@ save_img = False
 
 
 def main(f):
-    device = torch.device('cuda:0') if USE_GPU_GLOBAL else torch.device('cpu')
+    device = torch.device('cpu') if USE_GPU_GLOBAL else torch.device('cpu')
     global_network = AttentionNet(TrainParams.AGENT_INPUT_DIM, TrainParams.TASK_INPUT_DIM, TrainParams.EMBEDDING_DIM).to(device)
     checkpoint = torch.load(f'{model_path}/checkpoint.pth', map_location=torch.device('cpu'))
     global_network.load_state_dict(checkpoint['best_model'])
@@ -67,7 +68,8 @@ files = natsorted(glob.glob(f'{testSet}/env*.pkl'), key=lambda y: y.lower())
 b = []
 # pool = multiprocessing.Pool(processes=1)
 # final_results = pool.map(main, files)
-main(files[0])
+# do the first 10 environments
+final_results = [main(f) for f in files[:6]]
 perf_metrics = {'success_rate': [], 'makespan': [], 'time_cost': [], 'waiting_time': [], 'travel_dist': [], 'efficiency': []}
 df = pd.DataFrame(perf_metrics)
 for r in final_results:
