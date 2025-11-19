@@ -43,6 +43,8 @@ class TaskEnv:
         self.finished = False
         self.reactive_planning = False
 
+        self.finished_tasks = []
+
     def random_int(self, low, high, size=None):
         if self.rng is not None:
             integer = self.rng.integers(low, high, size)
@@ -99,7 +101,7 @@ class TaskEnv:
         cost_ini = [self.random_value(1, 1) for _ in range(species_num)]
         tasks_loc = self.random_value(tasks_num, 2)
         tasks_time = self.random_value(tasks_num, 1) * self.duration_scale
-        tasks_priority = self.random_int(1, 5, tasks_num)
+        tasks_priority = self.random_int(-5, 5 + 1, tasks_num)
 
         task_dic = dict()
         agent_dic = dict()
@@ -214,6 +216,7 @@ class TaskEnv:
         self.current_time = 0
         self.max_waiting_time = 200
         self.finished = False
+        self.finished_tasks = []
 
     @staticmethod
     def find_by_key(data, target):
@@ -399,8 +402,9 @@ class TaskEnv:
                             task['members'].remove(member)
                             task['abandoned_agent'].append(member)
             else:
-                if self.current_time >= task['time_finish']:
+                if self.current_time >= task['time_finish'] and not task['finished']:
                     task['finished'] = True
+                    self.finished_tasks.append(task['ID'])
 
         # check depot status
         for depot in self.depot_dic.values():
@@ -574,13 +578,25 @@ class TaskEnv:
                 agent['trajectory'].append(np.array([self.depot_dic[agent['species']]['location'][0], self.depot_dic[agent['species']]['location'][1], angle]))
 
     def get_episode_reward(self, max_time=100):
-        # TODO change reward function
+        # TODO tune weight
         self.calculate_waiting_time()
         eff = self.get_efficiency()
         finished_tasks = self.get_matrix(self.task_dic, 'finished')
         dist = np.sum(self.get_matrix(self.agent_dic, 'travel_dist'))
-        reward = - self.current_time - eff * 10 if self.finished else - max_time - eff * 10
+        priority_reward = self.get_priority_reward()
+        if self.finished:
+            reward = - self.current_time - eff * 10 + priority_reward
+        else:
+            reward = - max_time - eff * 10 + priority_reward
         return reward, finished_tasks
+    
+    def get_priority_reward(self):
+        reward = 0
+        n = len(self.finished_tasks)
+        for i, task_id in enumerate(self.finished_tasks):
+            reward += self.task_dic[task_id]['priority'] * (n - i) / n
+        print(reward)
+        return reward
 
     def get_efficiency(self):
         for task in self.task_dic.values():

@@ -37,7 +37,7 @@ class Logger(object):
     def write_to_board(self, tensorboard_data, curr_episode):
         tensorboard_data = np.array(tensorboard_data)
         tensorboard_data = list(np.nanmean(tensorboard_data, axis=0))
-        reward, p_l, entropy, grad_norm, success_rate, time, time_cost, waiting, distance, effi = tensorboard_data
+        reward, p_l, entropy, grad_norm, success_rate, time, time_cost, waiting, distance, effi, priority = tensorboard_data
         metrics = {'Loss/Learning Rate': self.lr_decay.get_last_lr()[0],
                    'Loss/Policy Loss': p_l,
                    'Loss/Entropy': entropy,
@@ -48,7 +48,8 @@ class Logger(object):
                    'Perf/Time cost': time_cost,
                    'Perf/Waiting time': waiting,
                    'Perf/Traveling distance':distance,
-                   'Perf/Waiting Efficiency': effi
+                   'Perf/Waiting Efficiency': effi,
+                   'Perf/Priority': priority
                    }
         for k, v in metrics.items():
             self.writer.add_scalar(tag=k, scalar_value=v, global_step=curr_episode)
@@ -159,7 +160,7 @@ def main():
     test_set = logger.generate_test_set_seed()
     baseline_value = None
     experience_buffer = {idx:[] for idx in range(7)}
-    perf_metrics = {'success_rate': [], 'makespan': [], 'time_cost': [], 'waiting_time': [], 'travel_dist': [], 'efficiency': []}
+    perf_metrics = {'success_rate': [], 'makespan': [], 'time_cost': [], 'waiting_time': [], 'travel_dist': [], 'efficiency': [], 'priority': []}
     training_data = []
 
     try:
