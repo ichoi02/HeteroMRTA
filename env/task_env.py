@@ -100,6 +100,7 @@ class TaskEnv:
         tasks_loc = self.random_value(tasks_num, 2)
         tasks_time = self.random_value(tasks_num, 1) * self.duration_scale
         tasks_priority = self.random_int(1, 5, tasks_num)
+        # tasks_priority = np.zeros(tasks_num)
 
         task_dic = dict()
         agent_dic = dict()
@@ -575,6 +576,15 @@ class TaskEnv:
 
     def get_episode_reward(self, max_time=100):
         # TODO change reward function
+        # OPTIONS
+        # 1. just add bonus for priority if task is finished (reward = -self.current_time - eff*10 + priority*scale factor)
+        # priority_scale = 5
+        # priority_bonus = 0
+        # for task in self.task_dic.values():
+        #     if task['finished']:
+        #         priority_bonus += task['priority']
+        # reward = - self.current_time + priority_bonus * priority_scale if self.finished else - max_time + priority_bonus * priority_scale
+        # 2. more complicated - reward earlier completion of high priority tasks (priority_time_score = time_finish/max_time * priority)
         self.calculate_waiting_time()
         eff = self.get_efficiency()
         finished_tasks = self.get_matrix(self.task_dic, 'finished')
@@ -781,7 +791,7 @@ class TaskEnv:
 
 if __name__ == '__main__':
     import pickle
-    testSet = 'RALTestSet'
+    testSet = 'RALPriorityTestSet2'
     os.mkdir(f'../{testSet}')
     for i in range(50):
         env = TaskEnv((3, 3), (5, 5), (20, 20), 5, seed=i)
