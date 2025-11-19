@@ -99,6 +99,7 @@ class TaskEnv:
         cost_ini = [self.random_value(1, 1) for _ in range(species_num)]
         tasks_loc = self.random_value(tasks_num, 2)
         tasks_time = self.random_value(tasks_num, 1) * self.duration_scale
+        tasks_priority = self.random_int(1, 5, tasks_num)
 
         task_dic = dict()
         agent_dic = dict()
@@ -119,6 +120,7 @@ class TaskEnv:
                            'time_finish': 0,
                            'status': tasks_ini[i, :],
                            'time': float(tasks_time[i, :]),
+                           'priority': tasks_priority[i],
                            'sum_waiting_time': 0,
                            'efficiency': 0,
                            'abandoned_agent': [],
@@ -292,6 +294,7 @@ class TaskEnv:
         return current_agents
 
     def get_current_task_status(self, agent):
+        # TODO
         status = []
         for t in self.task_dic.values():
             travel_time = self.calculate_eulidean_distance(agent, t) / agent['velocity']
@@ -571,6 +574,7 @@ class TaskEnv:
                 agent['trajectory'].append(np.array([self.depot_dic[agent['species']]['location'][0], self.depot_dic[agent['species']]['location'][1], angle]))
 
     def get_episode_reward(self, max_time=100):
+        # TODO
         self.calculate_waiting_time()
         eff = self.get_efficiency()
         finished_tasks = self.get_matrix(self.task_dic, 'finished')
@@ -644,6 +648,9 @@ class TaskEnv:
                                                  0.2, color='r')) for depot in self.depot_dic.values()]
         agent_group = [ax.text(agent['location'][0] * 10, agent['location'][1] * 10, str(agent['ID']),
                                horizontalalignment='center', verticalalignment='center', fontsize=8) for agent in self.agent_dic.values()]
+        # # add priority value as text to the task squares
+        # for task in self.task_dic.values():
+        #     task_squares[task['ID']].set_text(str(int(task['priority'])))
         if plot_robot_icon:
             agent_triangles = []
             for a in self.agent_dic.values():

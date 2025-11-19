@@ -9,8 +9,8 @@ class EnvParams:
 
 class TrainParams:
     USE_GPU = False
-    USE_GPU_GLOBAL = True
-    NUM_GPU = 1
+    USE_GPU_GLOBAL = False
+    NUM_GPU = 0
     NUM_META_AGENT = 16
     LR = 1e-5
     GAMMA = 1
@@ -25,7 +25,7 @@ class TrainParams:
     IL_DECAY = -1e-5  # -1e-6 700k decay 0.5, -1e-5 70k decay 0.5, -1e-4 7k decay 0.5
     BATCH_SIZE = 2048
     AGENT_INPUT_DIM = 6 + EnvParams.TRAIT_DIM
-    TASK_INPUT_DIM = 5 + 2 * EnvParams.TRAIT_DIM
+    TASK_INPUT_DIM = 5 + 2 * EnvParams.TRAIT_DIM # TODO
     EMBEDDING_DIM = 128
     SAMPLE_SIZE = 200
     PADDING_SIZE = 50
