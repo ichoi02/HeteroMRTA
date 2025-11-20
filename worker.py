@@ -99,6 +99,7 @@ class Worker:
         perf_metrics['waiting_time'] = [np.mean(self.env.get_matrix(self.env.agent_dic, 'sum_waiting_time'))]
         perf_metrics['travel_dist'] = [np.sum(self.env.get_matrix(self.env.agent_dic, 'travel_dist'))]
         perf_metrics['efficiency'] = [self.env.get_efficiency()]
+        perf_metrics['priority'] = [self.env.get_priority_reward()]
         return terminal_reward, buffer_dict, perf_metrics
 
     def baseline_test(self):

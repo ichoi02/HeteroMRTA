@@ -20,20 +20,20 @@ EnvParams.TRAIT_DIM = 5
 TrainParams.EMBEDDING_DIM = 128
 TrainParams.AGENT_INPUT_DIM = 6 + EnvParams.TRAIT_DIM
 # TODO (done) add 1 for priority, not sure why it resets the params value here
-TrainParams.TASK_INPUT_DIM = 5 + 2 * EnvParams.TRAIT_DIM
+TrainParams.TASK_INPUT_DIM = 1 + 5 + 2 * EnvParams.TRAIT_DIM
 
 USE_GPU = False
 USE_GPU_GLOBAL = False
 NUM_GPU = 0
 NUM_META_AGENT = 1
 GAMMA = 1
-FOLDER_NAME = 'save'
-testSet = 'woutPriorityVector'
+FOLDER_NAME = 'save_2'
+testSet = 'wPriority'
 model_path = f'model/{FOLDER_NAME}'
-sampling = False
+sampling = True
 max_task = False
 sampling_num = 10 if sampling else 1
-save_img = False
+save_img = True
 
 
 def main(f):
@@ -57,7 +57,7 @@ def main(f):
             if results_best['makespan'] >= results['makespan']:
                 results_best = results
     if save_img:
-        env.plot_animation(f'{testSet}/env_{index}', index)
+        env.plot_animation(f'{testSet}', index)
     end = time.time() - start
     df_ = pd.DataFrame(results_best, index=[index])
     print(f)
@@ -69,11 +69,11 @@ b = []
 # pool = multiprocessing.Pool(processes=1)
 # final_results = pool.map(main, files)
 # do the first 10 environments
-final_results = [main(f) for f in files[:6]]
-perf_metrics = {'success_rate': [], 'makespan': [], 'time_cost': [], 'waiting_time': [], 'travel_dist': [], 'efficiency': []}
+final_results = [main(f) for f in files[:10]]
+perf_metrics = {'success_rate': [], 'makespan': [], 'time_cost': [], 'waiting_time': [], 'travel_dist': [], 'efficiency': [], 'priority': []}
 df = pd.DataFrame(perf_metrics)
 for r in final_results:
     df = pd.concat([df, r[0]])
     b.append(r[1])
 print(np.mean(b))
-df.to_csv(f'{testSet}/RL_sampling_{sampling}_{sampling_num}.csv')
+# df.to_csv(f'{testSet}/RL_sampling_{sampling}_{sampling_num}.csv')

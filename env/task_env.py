@@ -43,6 +43,8 @@ class TaskEnv:
         self.finished = False
         self.reactive_planning = False
 
+        self.finished_tasks = []
+
     def random_int(self, low, high, size=None):
         if self.rng is not None:
             integer = self.rng.integers(low, high, size)
@@ -99,7 +101,7 @@ class TaskEnv:
         cost_ini = [self.random_value(1, 1) for _ in range(species_num)]
         tasks_loc = self.random_value(tasks_num, 2)
         tasks_time = self.random_value(tasks_num, 1) * self.duration_scale
-        tasks_priority = self.random_int(1, 5, tasks_num)
+        tasks_priority = self.random_int(-5, 6, tasks_num)
         # tasks_priority = np.zeros(tasks_num)
 
         task_dic = dict()
@@ -215,6 +217,8 @@ class TaskEnv:
         self.current_time = 0
         self.max_waiting_time = 200
         self.finished = False
+
+        self.finished_tasks = []
 
     @staticmethod
     def find_by_key(data, target):
@@ -402,6 +406,7 @@ class TaskEnv:
             else:
                 if self.current_time >= task['time_finish']:
                     task['finished'] = True
+                    self.finished_tasks.append(task['ID'])
 
         # check depot status
         for depot in self.depot_dic.values():
@@ -581,6 +586,13 @@ class TaskEnv:
         dist = np.sum(self.get_matrix(self.agent_dic, 'travel_dist'))
         reward = - self.current_time - eff * 10 if self.finished else - max_time - eff * 10
         return reward, finished_tasks
+    
+    def get_priority_reward(self):
+        reward = 0
+        n = len(self.finished_tasks)
+        for i, task_id in enumerate(self.finished_tasks):
+            reward += self.task_dic[task_id]['priority'] * (n - i) / n
+        return reward
 
     def get_efficiency(self):
         for task in self.task_dic.values():
@@ -596,6 +608,9 @@ class TaskEnv:
             agent['trajectory'] = np.vstack(agent['trajectory'])
 
     def plot_animation(self, path, n):
+        from matplotlib.colors import ListedColormap
+        priority_cmap = ListedColormap(plt.cm.Blues(np.linspace(0.2, 1, 10)))
+
         self.generate_traj()
         plot_robot_icon = False
         if plot_robot_icon:
@@ -621,7 +636,7 @@ class TaskEnv:
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_aspect('equal')
-        plt.subplots_adjust(left=0, right=0.85, top=0.87, bottom=0.02)
+        plt.subplots_adjust(left=0, right=0.65, top=0.87, bottom=0.02)
         lines = [ax.plot([], [], color=cmap(a['species']), zorder=0)[0] for a in self.agent_dic.values()]
         ax.set_title(f'Agents finish {finished_rate * 100}% tasks within {self.current_time:.2f}min.'
                      f'\nCurrent time is {0:.2f}min')
@@ -629,28 +644,56 @@ class TaskEnv:
         for i in range(self.species_num):
             color_map.append(patches.Patch(color=cmap(i), label='Agent species ' + str(i)))
         color_map.append(patches.Patch(color='g', label='Finished task'))
-        color_map.append(patches.Patch(color='b', label='Unfinished task'))
+        # color_map.append(patches.Patch(color='b', label='Unfinished task'))
         # red_patch = patches.Patch(color='r', label='Single agent')
         # yellow_patch = patches.Patch(color='y', label='Two agents')
         # cyan_patch = patches.Patch(color='c', label='Three agents')
         # magenta_patch = patches.Patch(color='m', label='>= Four agents')
         if plot_robot_icon:
-            ax.legend(handles=color_map, bbox_to_anchor=(0.99, 0.7))
+            ax.legend(handles=color_map, bbox_to_anchor=(1.1, 0.7))
         else:
             ax.legend(handles=color_map,
-                      bbox_to_anchor=(0.99, 0.7))
-        task_squares = [ax.add_patch(patches.RegularPolygon(xy=(task['location'][0] * 10,
-                                                             task['location'][1] * 10),
-                                                            numVertices=int(task['requirements'].sum()) + 3,
-                                                            radius=0.3, color='b')) for task in self.task_dic.values()]
+                      bbox_to_anchor=(1.1, 0.7))
+        import matplotlib as mpl
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+        # Create space to the right of the main axes
+        divider = make_axes_locatable(ax)
+        # Create a small axis for the colorbar *right of the plot*
+        cax = divider.append_axes("right", size="3%", pad=0.05)
+
+        sm = mpl.cm.ScalarMappable(
+            cmap=priority_cmap,
+            norm=mpl.colors.Normalize(vmin=1, vmax=10)
+        )
+        sm.set_array([])
+
+        cbar = plt.colorbar(sm, cax=cax)
+        cbar.set_ticks([])
+        cbar.set_label("Task Priority")
+
+        task_squares = []
+        for task in self.task_dic.values():
+            prio = task['priority']     # value -5 to 5
+            # convert to 1 to 10
+            prio = int(np.clip(prio + 6, 1, 10))
+            color = priority_cmap(prio - 1)   # convert priority to color
+            task_squares.append(
+                ax.add_patch(
+                    patches.RegularPolygon(
+                        xy=(task['location'][0] * 10, task['location'][1] * 10),
+                        numVertices=int(task['requirements'].sum()) + 3,
+                        radius=0.3,
+                        color=color
+                    )
+                )
+            )
         depot_tri = [ax.add_patch(patches.Circle((depot['location'][0] * 10,
                                                   depot['location'][1] * 10),
                                                  0.2, color='r')) for depot in self.depot_dic.values()]
         agent_group = [ax.text(agent['location'][0] * 10, agent['location'][1] * 10, str(agent['ID']),
                                horizontalalignment='center', verticalalignment='center', fontsize=8) for agent in self.agent_dic.values()]
         # # add priority value as text to the task squares
-        # for task in self.task_dic.values():
-        #     task_squares[task['ID']].set_text(str(int(task['priority'])))
         if plot_robot_icon:
             agent_triangles = []
             for a in self.agent_dic.values():
@@ -695,6 +738,8 @@ class TaskEnv:
                         task_squares[task['ID']].set_color('w')
                         task_squares[task['ID']].set_zorder(0)
                     else:
+                        prio = task['priority']
+                        task_squares[task['ID']].set_color(priority_cmap(prio - 1))
                         task_squares[task['ID']].set_color('b')
                         task_squares[task['ID']].set_zorder(1)
                 if frame * self.dt >= task['time_finish'] > 0:
@@ -787,6 +832,7 @@ if __name__ == '__main__':
     testSet3 = 'wZeroPriority'
     os.mkdir(f'../{testSet1}')
     os.mkdir(f'../{testSet2}')
+    os.mkdir(f'../{testSet3}')
     for i in range(50):
         env = TaskEnv((3, 3), (5, 5), (20, 20), 5, seed=i)
         env2 = copy.deepcopy(env)
