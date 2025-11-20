@@ -9,8 +9,8 @@ class EnvParams:
 
 class TrainParams:
     USE_GPU = False
-    USE_GPU_GLOBAL = False
-    NUM_GPU = 0
+    USE_GPU_GLOBAL = True
+    NUM_GPU = 1
     NUM_META_AGENT = 16
     LR = 1e-5
     GAMMA = 1
