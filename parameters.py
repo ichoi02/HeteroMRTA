@@ -34,7 +34,7 @@ class TrainParams:
 
 
 class SaverParams:
-    FOLDER_NAME = 'save_1'
+    FOLDER_NAME = 'save_priority_reward_zero'
     MODEL_PATH = f'model/{FOLDER_NAME}'
     TRAIN_PATH = f'train/{FOLDER_NAME}'
     GIFS_PATH = f'gifs/{FOLDER_NAME}'

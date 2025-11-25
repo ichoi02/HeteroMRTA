@@ -87,7 +87,7 @@ class Logger(object):
                       "level": curr_level,
                       "best_perf": best_perf
                       }
-        path_checkpoint = "./" + SaverParams.MODEL_PATH + "/checkpoint.pth"
+        path_checkpoint = "./" + SaverParams.MODEL_PATH + f"/checkpoint_{curr_episode}.pth"
         torch.save(checkpoint, path_checkpoint)
         print('Saved model', end='\n')
 
