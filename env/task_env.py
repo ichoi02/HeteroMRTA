@@ -778,15 +778,30 @@ class TaskEnv:
                 agent_id = release_agents[0].pop(0) if release_agents[0] else release_agents[1].pop(0)
                 agent = self.agent_dic[agent_id]
                 tasks_info, agents_info, mask = self.agent_observe(agent_id, max_waiting=True)
-                dist = np.inf
-                action = None
+                best_choice = None
+                best_score = -np.inf
+
                 for task_id, masked in enumerate(mask[0, :]):
                     if not masked:
-                        dist_ = self.calculate_eulidean_distance(agent, self.task_dic[
-                            task_id - 1]) if task_id - 1 >= 0 else self.calculate_eulidean_distance(agent,
-                                                                                          self.depot_dic[agent['species']])
-                        if dist_ < dist:
-                            action = task_id
+
+                        # priority
+                        if task_id - 1 >= 0:
+                            priority = self.task_dic[task_id - 1]['priority']
+                            dist_ = self.calculate_eulidean_distance(agent, self.task_dic[task_id - 1])
+                        else:
+                            # depot case: default low priority
+                            priority = -5
+                            dist_ = self.calculate_eulidean_distance(agent, self.depot_dic[agent['species']])
+
+                        # choose:
+                        # (1) highest priority
+                        # (2) if priority equal, shortest distance
+                        score = priority / (dist_ + 1e-6)
+                        if score > best_score:
+                            best_choice = task_id
+                            best_score = score
+
+                action = best_choice
                 self.agent_step(agent_id, action, 0)
             self.finished = self.check_finished()
         if self.plot_figure:

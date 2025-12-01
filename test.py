@@ -27,14 +27,13 @@ USE_GPU_GLOBAL = False
 NUM_GPU = 0
 NUM_META_AGENT = 1
 GAMMA = 1
-FOLDER_NAME = 'save_2'
+FOLDER_NAME = 'save_3_wfullPriority'
 testSet = 'wPriority'
 model_path = f'model/{FOLDER_NAME}'
 sampling = True
 max_task = False
 sampling_num = 10 if sampling else 1
-save_img = True
-
+save_img = False
 
 def main(f):
     device = torch.device('cpu') if USE_GPU_GLOBAL else torch.device('cpu')
@@ -69,11 +68,11 @@ b = []
 # pool = multiprocessing.Pool(processes=1)
 # final_results = pool.map(main, files)
 # do the first 10 environments
-final_results = [main(f) for f in files[:10]]
+final_results = [main(f) for f in files[:50]]
 perf_metrics = {'success_rate': [], 'makespan': [], 'time_cost': [], 'waiting_time': [], 'travel_dist': [], 'efficiency': [], 'priority': []}
 df = pd.DataFrame(perf_metrics)
 for r in final_results:
     df = pd.concat([df, r[0]])
     b.append(r[1])
 print(np.mean(b))
-# df.to_csv(f'{testSet}/RL_sampling_{sampling}_{sampling_num}.csv')
+df.to_csv(f'{testSet}/RL_sampling_{FOLDER_NAME}.csv')
