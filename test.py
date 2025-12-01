@@ -27,13 +27,14 @@ USE_GPU_GLOBAL = False
 NUM_GPU = 0
 NUM_META_AGENT = 1
 GAMMA = 1
-FOLDER_NAME = 'save_3_wfullPriority'
+FOLDER_NAME = 'save_1_w0.5Priority'
 testSet = 'wPriority'
 model_path = f'model/{FOLDER_NAME}'
-sampling = True
+sampling = False
 max_task = False
 sampling_num = 10 if sampling else 1
 save_img = False
+result_priorities = []
 
 def main(f):
     device = torch.device('cpu') if USE_GPU_GLOBAL else torch.device('cpu')
@@ -55,6 +56,7 @@ def main(f):
         else:
             if results_best['makespan'] >= results['makespan']:
                 results_best = results
+        result_priorities.append([int(env.task_dic[task_id]['priority']) for task_id in env.finished_tasks])
     if save_img:
         env.plot_animation(f'{testSet}', index)
     end = time.time() - start
@@ -75,4 +77,12 @@ for r in final_results:
     df = pd.concat([df, r[0]])
     b.append(r[1])
 print(np.mean(b))
+# create 2d colormap of final_results which is int value from -5 to 5
+import matplotlib.pyplot as plt
+plt.imshow(np.array(result_priorities), cmap='Blues', vmin=-5, vmax=5)
+plt.xlabel('Finished tasks in order')
+plt.ylabel('Env')
+plt.colorbar()
+plt.show()
+
 df.to_csv(f'{testSet}/RL_sampling_{FOLDER_NAME}.csv')
